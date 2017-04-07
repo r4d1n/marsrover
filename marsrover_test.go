@@ -28,7 +28,7 @@ func TestGetManifest(t *testing.T) {
 	defer server.Close()
 
 	// instantiate client
-	c := marsrover.NewClient("DEMO_KEY", server.URL)
+	c := marsrover.NewClient("", server.URL)
 	result, err := c.GetManifest("curiosity")
 
 	if err != nil {
@@ -45,5 +45,34 @@ func TestGetManifest(t *testing.T) {
 }
 
 func TestGetImagesBySol(t *testing.T) {
+	// return sample photo data for a rover on a specific sol
+	solHandler := func(w http.ResponseWriter, r *http.Request) {
+		data, err := ioutil.ReadFile("./testdata/sol_response.json")
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(data)
+	}
 
+	// create test server with handler
+	server := httptest.NewServer(http.HandlerFunc(solHandler))
+	defer server.Close()
+
+	// instantiate client
+	c := marsrover.NewClient("DEMO_KEY", server.URL)
+	photos, err := c.GetImagesBySol("curiosity", 1004)
+
+	if err != nil {
+		t.Errorf("Error: %v", err)
+	}
+
+	// confirm result
+	if len(photos) != 4 {
+		t.Errorf("Unexpected result: %v", photos)
+	}
+	if photos[0].Id != 102685 {
+		t.Errorf("Unexpected result: %v", photos)
+	}
 }

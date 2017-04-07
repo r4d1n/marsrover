@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -28,10 +29,8 @@ type Manifest struct {
 	MaxSol      int    `json:"max_sol"`
 	MaxDate     string `json:"max_date"`
 	TotalPhotos int    `json:"total_photos"`
-	Photos      Photos `json:"photos"`
+	Sols        []Sol  `json:"photos"`
 }
-
-type Photos []*Sol
 
 type Sol struct {
 	Sol         int      `json:"sol"`
@@ -39,7 +38,42 @@ type Sol struct {
 	Cameras     []string `json:"cameras"`
 }
 
+type solResponse struct {
+	Photos []Photo
+}
+
+type Photo struct {
+	Id        int
+	Sol       int
+	Camera    Camera
+	ImgSrc    string `json:"img_src"`
+	EarthDate string `json:"earth_date"`
+	Rover     Rover
+}
+
+type Rover struct {
+	Id          int
+	Name        string
+	LandingDate string `json:"landing_date"`
+	LaunchDate  string `json:"launch_date"`
+	Status      string
+	MaxSol      int    `json:"max_sol"`
+	MaxDate     string `json:"max_date"`
+	TotalPhotos int    `json:"total_photos"`
+	Cameras     []Camera
+}
+
+type Camera struct {
+	Id        int    `json:"id, omitempty"`
+	ShortName string `json:"name"`
+	RoverId   int    `json:"rover_id, omitempty"`
+	FullName  string `json:"full_name"`
+}
+
 func NewClient(key string, u string) *RoverClient {
+	if key == "" {
+		key = "DEMO_KEY"
+	}
 	if u == "" {
 		u = baseURL
 	}
@@ -67,8 +101,9 @@ func (c *RoverClient) GetManifest(rover string) (*Manifest, error) {
 	return &data.Manifest, nil
 }
 
-func (c *RoverClient) GetImagesBySol(rover string, sol int) (*Photos, error) {
-	url := fmt.Sprintf(c.URL+"/manifests/%s?api_key=%s", rover, c.Key)
+func (c *RoverClient) GetImagesBySol(rover string, sol int) ([]Photo, error) {
+	url := fmt.Sprintf(c.URL+"/rovers/%s/photos?sol=%d&api_key=%s", rover, sol, c.Key)
+	log.Println(url)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -77,12 +112,12 @@ func (c *RoverClient) GetImagesBySol(rover string, sol int) (*Photos, error) {
 	if err != nil {
 		return nil, err
 	}
-	var data Photos
+	var data solResponse
 	err = json.Unmarshal(bytes, &data)
 	if err != nil {
 		return nil, err
 	}
-	return &data, nil
+	return data.Photos, nil
 }
 
 func (c *RoverClient) doRequest(req *http.Request) ([]byte, error) {
