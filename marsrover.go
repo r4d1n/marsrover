@@ -1,16 +1,17 @@
+// package marsrover provides a client for the NASA mars rover images API
+
 package marsrover
 
 import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
 const baseURL string = "https://api.nasa.gov/mars-photos/api/v1"
 
-type RoverClient struct {
+type Client struct {
 	Key string
 	URL string
 }
@@ -32,6 +33,8 @@ type Manifest struct {
 	Sols        []Sol  `json:"photos"`
 }
 
+// Sol contains data for the rover's photo activity on a given martian sol
+
 type Sol struct {
 	Sol         int      `json:"sol"`
 	TotalPhotos int      `json:"total_photos"`
@@ -42,8 +45,10 @@ type solResponse struct {
 	Photos []Photo
 }
 
+// Photo represents an image and related metadata
+
 type Photo struct {
-	Id        int
+	ID        int
 	Sol       int
 	Camera    Camera
 	ImgSrc    string `json:"img_src"`
@@ -51,8 +56,10 @@ type Photo struct {
 	Rover     Rover
 }
 
+// Rover contains information about a given rover
+
 type Rover struct {
-	Id          int
+	ID          int
 	Name        string
 	LandingDate string `json:"landing_date"`
 	LaunchDate  string `json:"launch_date"`
@@ -63,27 +70,28 @@ type Rover struct {
 	Cameras     []Camera
 }
 
+// Rover contains information about a rover camera
+
 type Camera struct {
-	Id        int    `json:"id, omitempty"`
+	ID        int    `json:"id, omitempty"`
 	ShortName string `json:"name"`
-	RoverId   int    `json:"rover_id, omitempty"`
+	RoverID   int    `json:"rover_id, omitempty"`
 	FullName  string `json:"full_name"`
 }
 
-func NewClient(key string, u string) *RoverClient {
+func NewClient(key string) *Client {
 	if key == "" {
 		key = "DEMO_KEY"
 	}
-	if u == "" {
-		u = baseURL
-	}
-	return &RoverClient{
+	return &Client{
 		Key: key,
-		URL: u,
+		URL: baseURL,
 	}
 }
 
-func (c *RoverClient) GetManifest(rover string) (*Manifest, error) {
+// Fetch a rover mission manifest
+
+func (c *Client) GetManifest(rover string) (*Manifest, error) {
 	url := fmt.Sprintf(c.URL+"/manifests/%s?api_key=%s", rover, c.Key)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -101,9 +109,10 @@ func (c *RoverClient) GetManifest(rover string) (*Manifest, error) {
 	return &data.Manifest, nil
 }
 
-func (c *RoverClient) GetImagesBySol(rover string, sol int) ([]Photo, error) {
+// Fetch all photos taken by a specific rover on a particular martian sol
+
+func (c *Client) GetImagesBySol(rover string, sol int) ([]Photo, error) {
 	url := fmt.Sprintf(c.URL+"/rovers/%s/photos?sol=%d&api_key=%s", rover, sol, c.Key)
-	log.Println(url)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -120,7 +129,7 @@ func (c *RoverClient) GetImagesBySol(rover string, sol int) ([]Photo, error) {
 	return data.Photos, nil
 }
 
-func (c *RoverClient) doRequest(req *http.Request) ([]byte, error) {
+func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -135,4 +144,11 @@ func (c *RoverClient) doRequest(req *http.Request) ([]byte, error) {
 		return nil, fmt.Errorf("%s", body)
 	}
 	return body, nil
+}
+
+// A convenience function for testing
+// There must be a better way of doing this
+
+func (c *Client) OverrideBaseURL(url string) {
+	c.URL = url
 }

@@ -28,7 +28,8 @@ func TestGetManifest(t *testing.T) {
 	defer server.Close()
 
 	// instantiate client
-	c := marsrover.NewClient("", server.URL)
+	c := marsrover.NewClient("DEMO_KEY")
+	c.OverrideBaseURL(server.URL)
 	result, err := c.GetManifest("curiosity")
 
 	if err != nil {
@@ -61,7 +62,8 @@ func TestGetImagesBySol(t *testing.T) {
 	defer server.Close()
 
 	// instantiate client
-	c := marsrover.NewClient("DEMO_KEY", server.URL)
+	c := marsrover.NewClient("DEMO_KEY")
+	c.OverrideBaseURL(server.URL)
 	photos, err := c.GetImagesBySol("curiosity", 1004)
 
 	if err != nil {
@@ -72,7 +74,7 @@ func TestGetImagesBySol(t *testing.T) {
 	if len(photos) != 4 {
 		t.Errorf("Unexpected result: %v", photos)
 	}
-	if photos[0].Id != 102685 {
+	if photos[0].ID != 102685 {
 		t.Errorf("Unexpected result: %v", photos)
 	}
 }

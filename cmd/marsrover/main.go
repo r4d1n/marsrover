@@ -12,20 +12,18 @@ func main() {
 	if len(os.Args) < 2 {
 		log.Fatal("Please Specify a Rover Name")
 	}
-	client := marsrover.NewClient("", "")
+	client := marsrover.NewClient(os.Getenv("NASA_API_KEY"))
 	if len(os.Args) < 3 {
 		m, err := client.GetManifest(os.Args[1])
-		log.Println(m)
 		if err != nil {
 			log.Fatal(err)
 		}
+		log.Println(m)
 	} else {
-		log.Println(os.Args)
 		sol, err := strconv.Atoi(os.Args[2])
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Println(sol)
 		m, err := client.GetImagesBySol(os.Args[1], sol)
 		if err != nil {
 			log.Fatal(err)
