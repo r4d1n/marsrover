@@ -23,10 +23,10 @@ type manifestResponse struct {
 // The manifest contains details about a rover's mission
 
 type Manifest struct {
-	Name        string
+	Name        string `json:"name"`
 	LandingDate string `json:"landing_date"`
 	LaunchDate  string `json:"launch_date"`
-	Status      string
+	Status      string `json:"status"`
 	MaxSol      int    `json:"max_sol"`
 	MaxDate     string `json:"max_date"`
 	TotalPhotos int    `json:"total_photos"`
@@ -48,26 +48,26 @@ type solResponse struct {
 // Photo represents an image and related metadata
 
 type Photo struct {
-	ID        int
-	Sol       int
-	Camera    Camera
+	ID        int    `json:"id"`
+	Sol       int    `json:"sol"`
+	Camera    Camera `json:"camera"`
 	ImgSrc    string `json:"img_src"`
 	EarthDate string `json:"earth_date"`
-	Rover     Rover
+	Rover     Rover  `json:"rover"`
 }
 
 // Rover contains information about a given rover
 
 type Rover struct {
-	ID          int
-	Name        string
-	LandingDate string `json:"landing_date"`
-	LaunchDate  string `json:"launch_date"`
-	Status      string
-	MaxSol      int    `json:"max_sol"`
-	MaxDate     string `json:"max_date"`
-	TotalPhotos int    `json:"total_photos"`
-	Cameras     []Camera
+	ID          int      `json:"id"`
+	Name        string   `json:"name"`
+	LandingDate string   `json:"landing_date"`
+	LaunchDate  string   `json:"launch_date"`
+	Status      string   `json:"status"`
+	MaxSol      int      `json:"max_sol"`
+	MaxDate     string   `json:"max_date"`
+	TotalPhotos int      `json:"total_photos"`
+	Cameras     []Camera `json:"cameras"`
 }
 
 // Rover contains information about a rover camera
@@ -113,6 +113,26 @@ func (c *Client) GetManifest(rover string) (*Manifest, error) {
 
 func (c *Client) GetImagesBySol(rover string, sol int) ([]Photo, error) {
 	url := fmt.Sprintf(c.URL+"/rovers/%s/photos?sol=%d&api_key=%s", rover, sol, c.Key)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	bytes, err := c.doRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	var data solResponse
+	err = json.Unmarshal(bytes, &data)
+	if err != nil {
+		return nil, err
+	}
+	return data.Photos, nil
+}
+
+// Fetch all photos taken by a specific rover on a particular earth date
+
+func (c *Client) GetImagesByEarthDate(rover string, date string) ([]Photo, error) {
+	url := fmt.Sprintf(c.URL+"/rovers/%s/photos?earth_date=%s&api_key=%s", rover, date, c.Key)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
