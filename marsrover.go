@@ -11,17 +11,17 @@ import (
 
 const baseURL string = "https://api.nasa.gov/mars-photos/api/v1"
 
+// Client has an API key and the base url for accessing mars rover data from NASA
 type Client struct {
-	Key string
-	URL string
+	Key     string
+	baseURL string
 }
 
 type manifestResponse struct {
 	Manifest Manifest `json:"photo_manifest"`
 }
 
-// The manifest contains details about a rover's mission
-
+// Manifest contains details about a rover's mission
 type Manifest struct {
 	Name        string `json:"name"`
 	LandingDate string `json:"landing_date"`
@@ -34,19 +34,18 @@ type Manifest struct {
 }
 
 // Sol contains data for the rover's photo activity on a given martian sol
-
 type Sol struct {
 	Sol         int      `json:"sol"`
 	TotalPhotos int      `json:"total_photos"`
 	Cameras     []string `json:"cameras"`
 }
 
-type photoResponse struct {
+// PhotoResponse contains a slice of Photos
+type PhotoResponse struct {
 	Photos []Photo `json:"photos"`
 }
 
 // Photo represents an image and related metadata
-
 type Photo struct {
 	ID        int    `json:"id"`
 	Sol       int    `json:"sol"`
@@ -57,7 +56,6 @@ type Photo struct {
 }
 
 // Rover contains information about a given rover
-
 type Rover struct {
 	ID          int      `json:"id"`
 	Name        string   `json:"name"`
@@ -70,8 +68,7 @@ type Rover struct {
 	Cameras     []Camera `json:"cameras"`
 }
 
-// Rover contains information about a rover camera
-
+// Camera contains information about a rover camera
 type Camera struct {
 	ID        int    `json:"id, omitempty"`
 	ShortName string `json:"name"`
@@ -79,20 +76,20 @@ type Camera struct {
 	FullName  string `json:"full_name"`
 }
 
+// NewClient instantiates a new client for the Mars Rover API
 func NewClient(key string) *Client {
 	if key == "" {
 		key = "DEMO_KEY"
 	}
 	return &Client{
-		Key: key,
-		URL: baseURL,
+		Key:     key,
+		baseURL: baseURL,
 	}
 }
 
-// Fetch a rover mission manifest
-
+// GetManifest fetches a rover mission manifest
 func (c *Client) GetManifest(rover string) (*Manifest, error) {
-	url := fmt.Sprintf(c.URL+"/manifests/%s?api_key=%s", rover, c.Key)
+	url := fmt.Sprintf(c.baseURL+"/manifests/%s?api_key=%s", rover, c.Key)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -109,10 +106,9 @@ func (c *Client) GetManifest(rover string) (*Manifest, error) {
 	return &data.Manifest, nil
 }
 
-// Fetch all photos taken by a specific rover on a particular martian sol
-
-func (c *Client) GetImagesBySol(rover string, sol int) (*photoResponse, error) {
-	url := fmt.Sprintf(c.URL+"/rovers/%s/photos?sol=%d&api_key=%s", rover, sol, c.Key)
+// GetImagesBySol fetches all photos taken by a specific rover on a particular martian sol
+func (c *Client) GetImagesBySol(rover string, sol int) (*PhotoResponse, error) {
+	url := fmt.Sprintf(c.baseURL+"/rovers/%s/photos?sol=%d&api_key=%s", rover, sol, c.Key)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -121,7 +117,7 @@ func (c *Client) GetImagesBySol(rover string, sol int) (*photoResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	var data *photoResponse
+	var data *PhotoResponse
 	err = json.Unmarshal(bytes, &data)
 	if err != nil {
 		return nil, err
@@ -129,10 +125,9 @@ func (c *Client) GetImagesBySol(rover string, sol int) (*photoResponse, error) {
 	return data, nil
 }
 
-// Fetch all photos taken by a specific rover on a particular earth date
-
-func (c *Client) GetImagesByEarthDate(rover string, date string) (*photoResponse, error) {
-	url := fmt.Sprintf(c.URL+"/rovers/%s/photos?earth_date=%s&api_key=%s", rover, date, c.Key)
+// GetImagesByEarthDate fetches all photos taken by a specific rover on a particular earth date
+func (c *Client) GetImagesByEarthDate(rover string, date string) (*PhotoResponse, error) {
+	url := fmt.Sprintf(c.baseURL+"/rovers/%s/photos?earth_date=%s&api_key=%s", rover, date, c.Key)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -141,7 +136,7 @@ func (c *Client) GetImagesByEarthDate(rover string, date string) (*photoResponse
 	if err != nil {
 		return nil, err
 	}
-	var data *photoResponse
+	var data *PhotoResponse
 	err = json.Unmarshal(bytes, &data)
 	if err != nil {
 		return nil, err
@@ -166,9 +161,8 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 	return body, nil
 }
 
-// A convenience function for testing
-// There must be a better way of doing this
-
+// OverrideBaseURL is convenience function for testing
+// But there must be a better way of doing this
 func (c *Client) OverrideBaseURL(url string) {
-	c.URL = url
+	c.baseURL = url
 }
