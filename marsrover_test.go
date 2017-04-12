@@ -75,11 +75,11 @@ func TestGetImagesBySol(t *testing.T) {
 	}
 
 	// confirm result
-	if len(result) != 4 {
+	if len(result.Photos) != 4 {
 		t.Errorf("Unexpected result: %v", result)
 	}
-	if result[0].ID != 102685 {
-		t.Errorf("Unexpected result: %v", result[0].ID)
+	if result.Photos[0].ID != 102685 {
+		t.Errorf("Unexpected result: %v", result.Photos[0].ID)
 	}
 }
 
@@ -111,10 +111,10 @@ func TestGetImagesByEarthDate(t *testing.T) {
 	}
 
 	// confirm result
-	if len(result) != 4 {
+	if len(result.Photos) != 4 {
 		t.Errorf("Unexpected result: %v", result)
 	}
-	if result[0].ID != 102685 {
-		t.Errorf("Unexpected result: %v", result[0].ID)
+	if result.Photos[0].ID != 102685 {
+		t.Errorf("Unexpected result: %v", result.Photos[0].ID)
 	}
 }

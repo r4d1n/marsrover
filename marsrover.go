@@ -41,8 +41,8 @@ type Sol struct {
 	Cameras     []string `json:"cameras"`
 }
 
-type solResponse struct {
-	Photos []Photo
+type photoResponse struct {
+	Photos []Photo `json:"photos"`
 }
 
 // Photo represents an image and related metadata
@@ -111,7 +111,7 @@ func (c *Client) GetManifest(rover string) (*Manifest, error) {
 
 // Fetch all photos taken by a specific rover on a particular martian sol
 
-func (c *Client) GetImagesBySol(rover string, sol int) ([]Photo, error) {
+func (c *Client) GetImagesBySol(rover string, sol int) (*photoResponse, error) {
 	url := fmt.Sprintf(c.URL+"/rovers/%s/photos?sol=%d&api_key=%s", rover, sol, c.Key)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -121,17 +121,17 @@ func (c *Client) GetImagesBySol(rover string, sol int) ([]Photo, error) {
 	if err != nil {
 		return nil, err
 	}
-	var data solResponse
+	var data *photoResponse
 	err = json.Unmarshal(bytes, &data)
 	if err != nil {
 		return nil, err
 	}
-	return data.Photos, nil
+	return data, nil
 }
 
 // Fetch all photos taken by a specific rover on a particular earth date
 
-func (c *Client) GetImagesByEarthDate(rover string, date string) ([]Photo, error) {
+func (c *Client) GetImagesByEarthDate(rover string, date string) (*photoResponse, error) {
 	url := fmt.Sprintf(c.URL+"/rovers/%s/photos?earth_date=%s&api_key=%s", rover, date, c.Key)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -141,12 +141,12 @@ func (c *Client) GetImagesByEarthDate(rover string, date string) ([]Photo, error
 	if err != nil {
 		return nil, err
 	}
-	var data solResponse
+	var data *photoResponse
 	err = json.Unmarshal(bytes, &data)
 	if err != nil {
 		return nil, err
 	}
-	return data.Photos, nil
+	return data, nil
 }
 
 func (c *Client) doRequest(req *http.Request) ([]byte, error) {
