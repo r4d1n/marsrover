@@ -156,7 +156,11 @@ func (c *Client) doRequest(req *http.Request) ([]byte, error) {
 		return nil, err
 	}
 	if 200 != resp.StatusCode {
-		return nil, fmt.Errorf("%s", body)
+		err := &StatusError{
+			Msg:  string(body),
+			Code: resp.StatusCode,
+		}
+		return nil, err
 	}
 	return body, nil
 }

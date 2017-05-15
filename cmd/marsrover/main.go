@@ -28,6 +28,6 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Println(m)
+		log.Println("completed request:\n", m)
 	}
 }
